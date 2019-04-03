@@ -6,12 +6,14 @@ export default function FooList(props) {
 
 	const handleMessage = msg => {
 		if (msg.url) {
-			fetch(msg.url).then(res =>
-				setNames(prevState => [
-					...prevState,
-					`${res.first_name} ${res.last_name}`
-				])
-			);
+			fetch(msg.url)
+				.then(res => res.json())
+				.then(data => {
+					setNames(prevState => [
+						...prevState,
+						`${data.first_name} ${data.last_name}`
+					]);
+				});
 		} else {
 			setNames(prevState => [
 				...prevState,
