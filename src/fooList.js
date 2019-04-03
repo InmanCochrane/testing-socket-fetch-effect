@@ -34,7 +34,7 @@ export default function FooList(props) {
 		 **/
 		socket.on("message", handleMessage);
 		return () => socket.off("message", handleMessage);
-	}, []);
+	}, [socket]);
 
 	return names && names.map((name, i) => <Foo key={i} name={name} />);
 }
