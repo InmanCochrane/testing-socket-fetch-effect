@@ -30,10 +30,9 @@ export default function FooList(props) {
 		/***
 		 * When running test, this code is never reached.
 		 **/
-		debugger;
 		socket.on("message", handleMessage);
 		return () => socket.off("message", handleMessage);
-	});
+	}, []);
 
 	return names && names.map((name, i) => <Foo key={i} name={name} />);
 }
