@@ -119,8 +119,7 @@ it("should render children with data from user API on socket message with url", 
 	fetch.mockResponseOnce(JSON.stringify(testFetchResponseData));
 
 	const testSocketMessage = {
-		first_name: "Test",
-		last_name: "User"
+		url: "irrelevant"
 	};
 	act(() => {
 		mockSocket.mockReceiveData(`id-${barId}`, "message", testSocketMessage);
