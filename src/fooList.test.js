@@ -124,19 +124,21 @@ it("should render children with data from user API on socket message with url", 
 	act(() => {
 		mockSocket.mockReceiveData(`id-${barId}`, "message", testSocketMessage);
 	});
-	wrapper.update();
 
 	const expectedChildProps = {
 		name: `${testFetchResponseData.first_name} ${
 			testFetchResponseData.last_name
 		}`
 	};
-	const potentiallyMatchingChildren = wrapper.find("Foo");
-	const childrenMatchingProps = potentiallyMatchingChildren.filterWhere(
-		child => {
-			const props = child.props();
-			return props && props.name === expectedChildProps.name;
-		}
-	);
-	expect(childrenMatchingProps).toHaveLength(1);
+	setImmediate(() => {
+		wrapper.update();
+		const potentiallyMatchingChildren = wrapper.find("Foo");
+		const childrenMatchingProps = potentiallyMatchingChildren.filterWhere(
+			child => {
+				const props = child.props();
+				return props && props.name === expectedChildProps.name;
+			}
+		);
+		expect(childrenMatchingProps).toHaveLength(1);
+	});
 });
