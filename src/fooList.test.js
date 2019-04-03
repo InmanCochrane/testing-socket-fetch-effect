@@ -1,11 +1,18 @@
 import React from "react";
 import { act } from "react-dom/test-utils";
-import TestRenderer from "react-test-renderer";
+import { mount } from "enzyme";
 import mockFetch from "jest-fetch-mock";
 import io from "socket.io-client";
 import FooList from "./fooList";
 
+/* START Normally in global src/setupTests.js */
+import { configure } from "enzyme";
+import Adapter from "enzyme-adapter-react-16";
+
+configure({ adapter: new Adapter() });
 global.fetch = mockFetch;
+/* END Normally in global src/setupTests.js */
+
 jest.mock("socket.io-client");
 
 const mockSocket = new function Socket() {
@@ -76,7 +83,7 @@ beforeEach(() => {
 it("should render children with data from socket message with name", () => {
 	const barId = 42;
 
-	const renderer = TestRenderer.create(<FooList barId={barId} />);
+	const wrapper = mount(<FooList barId={barId} />);
 
 	const testSocketMessage = {
 		first_name: "Test",
@@ -85,17 +92,25 @@ it("should render children with data from socket message with name", () => {
 	act(() => {
 		mockSocket.mockReceiveData(`id-${barId}`, "message", testSocketMessage);
 	});
+	wrapper.update();
 
 	const expectedChildProps = {
 		name: `${testSocketMessage.first_name} ${testSocketMessage.last_name}`
 	};
-	expect(renderer.root.findAllByProps(expectedChildProps)).toHaveLength(1);
+	const potentiallyMatchingChildren = wrapper.find("Foo");
+	const childrenMatchingProps = potentiallyMatchingChildren.filterWhere(
+		child => {
+			const props = child.props();
+			return props && props.name === expectedChildProps.name;
+		}
+	);
+	expect(childrenMatchingProps).toHaveLength(1);
 });
 
 it("should render children with data from user API on socket message with url", () => {
 	const barId = 42;
 
-	const renderer = TestRenderer.create(<FooList barId={barId} />);
+	const wrapper = mount(<FooList barId={barId} />);
 
 	const testFetchResponseData = {
 		first_name: "Test",
@@ -103,15 +118,26 @@ it("should render children with data from user API on socket message with url", 
 	};
 	fetch.mockResponseOnce(JSON.stringify(testFetchResponseData));
 
-	const testSocketMessage = { url: "" };
+	const testSocketMessage = {
+		first_name: "Test",
+		last_name: "User"
+	};
 	act(() => {
 		mockSocket.mockReceiveData(`id-${barId}`, "message", testSocketMessage);
 	});
+	wrapper.update();
 
 	const expectedChildProps = {
 		name: `${testFetchResponseData.first_name} ${
 			testFetchResponseData.last_name
 		}`
 	};
-	expect(renderer.root.findAllByProps(expectedChildProps)).toHaveLength(1);
+	const potentiallyMatchingChildren = wrapper.find("Foo");
+	const childrenMatchingProps = potentiallyMatchingChildren.filterWhere(
+		child => {
+			const props = child.props();
+			return props && props.name === expectedChildProps.name;
+		}
+	);
+	expect(childrenMatchingProps).toHaveLength(1);
 });
