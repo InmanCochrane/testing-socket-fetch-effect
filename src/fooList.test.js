@@ -73,7 +73,26 @@ beforeEach(() => {
 	fetch.resetMocks();
 });
 
-it("should render children with data from user API on socket message", () => {
+it("should render children with data from socket message with name", () => {
+	const barId = 42;
+
+	const renderer = TestRenderer.create(<FooList barId={barId} />);
+
+	const testSocketMessage = {
+		first_name: "Test",
+		last_name: "User"
+	};
+	act(() => {
+		mockSocket.mockReceiveData(`id-${barId}`, "message", testSocketMessage);
+	});
+
+	const expectedChildProps = {
+		name: `${testSocketMessage.first_name} ${testSocketMessage.last_name}`
+	};
+	expect(renderer.root.findAllByProps(expectedChildProps)).toHaveLength(1);
+});
+
+it("should render children with data from user API on socket message with url", () => {
 	const barId = 42;
 
 	const renderer = TestRenderer.create(<FooList barId={barId} />);
