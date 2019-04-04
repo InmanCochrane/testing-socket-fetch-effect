@@ -1,11 +1,9 @@
 import React from "react";
 import { act } from "react-dom/test-utils";
 import TestRenderer from "react-test-renderer";
-import mockFetch from "jest-fetch-mock";
 import io from "socket.io-client";
-import FooList from "./fooList";
+import NameList from "./fooList";
 
-global.fetch = mockFetch;
 jest.mock("socket.io-client");
 
 const mockSocket = new function Socket() {
@@ -56,10 +54,7 @@ const mockSocket = new function Socket() {
 	 */
 	this.mockReceiveData = (channel, messageType, data) => {
 		if (channel === this.channel) {
-			/***
-			 * Error occurs here because handler was never set up because 'on'
-			 *  was never called
-			 **/
+			// Error: no such handler because 'on' was never called from effect
 			this.handlers[messageType].forEach(handler => handler(data));
 		}
 	};
@@ -69,51 +64,22 @@ beforeAll(() => {
 	io.mockImplementation(() => mockSocket);
 });
 
-beforeEach(() => {
-	fetch.resetMocks();
-});
 
 it("should render children with data from socket message with name", () => {
-	const barId = 42;
+	const channelId = 42;
 
-	const renderer = TestRenderer.create(<FooList barId={barId} />);
+	const renderer = TestRenderer.create(<NameList channelId={channelId} />);
 
 	const testSocketMessage = {
 		first_name: "Test",
 		last_name: "User"
 	};
 	act(() => {
-		mockSocket.mockReceiveData(`id-${barId}`, "message", testSocketMessage);
+		mockSocket.mockReceiveData(`id-${channelId}`, "message", testSocketMessage);
 	});
 
 	const expectedChildProps = {
 		name: `${testSocketMessage.first_name} ${testSocketMessage.last_name}`
-	};
-	expect(renderer.root.findAllByProps(expectedChildProps)).toHaveLength(1);
-});
-
-it("should render children with data from user API on socket message with url", () => {
-	const barId = 42;
-
-	const renderer = TestRenderer.create(<FooList barId={barId} />);
-
-	const testFetchResponseData = {
-		first_name: "Test",
-		last_name: "User"
-	};
-	fetch.mockResponseOnce(JSON.stringify(testFetchResponseData));
-
-	const testSocketMessage = {
-		url: "irrelevant"
-	};
-	act(() => {
-		mockSocket.mockReceiveData(`id-${barId}`, "message", testSocketMessage);
-	});
-
-	const expectedChildProps = {
-		name: `${testFetchResponseData.first_name} ${
-			testFetchResponseData.last_name
-		}`
 	};
 	expect(renderer.root.findAllByProps(expectedChildProps)).toHaveLength(1);
 });
